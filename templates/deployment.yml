@@ -1,0 +1,94 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.APP_NAME }}
+  namespace: {{ .Values.NAMESPACE }}
+  labels:
+    app: {{ .Values.APP_NAME }}
+    app.kubernetes.io/instance: {{ .Values.APP_NAME }}
+    app.kubernetes.io/managed-by: 'helm'
+  annotations:
+    app_name: {{ .Values.APP_NAME }}
+    app_comp: {{ .Values.APP_COMP }}
+    env: {{ .Values.ENVIRONMENT }}
+    ci_num: {{ .Values.CI_NUM }}
+    top_level_ci_num: {{ .Values.TOP_LEVEL_CI_NUM }}
+    cost_center: {{ quote .Values.COST_CENTER }}
+    owning_segment: {{ .Values.OWNING_SEGMENT }}
+    sec_flag: {{ quote .Values.SEC_FLAG }}
+    pii_flag: {{ quote .Values.PII_FLAG }}
+spec:
+  progressDeadlineSeconds: 250
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.APP_NAME }}
+  strategy:
+    rollingUpdate:
+      maxSurge: 100%
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.APP_NAME }}
+      annotations:
+        app_name: {{ .Values.APP_NAME }}
+        app_comp: {{ .Values.APP_COMP }}
+        env: {{ .Values.ENVIRONMENT }}
+        ci_num: {{ .Values.CI_NUM }}
+        top_level_ci_num: {{ .Values.TOP_LEVEL_CI_NUM }}
+        cost_center: {{ quote .Values.COST_CENTER }}
+        owning_segment: {{ .Values.OWNING_SEGMENT }}
+        sec_flag: {{ quote .Values.SEC_FLAG }}
+        pii_flag: {{ quote .Values.PII_FLAG }}
+    spec:
+      nodeSelector:
+        'agentpool': {{ .Values.NODE_SELECTOR }}
+      containers:
+      - image: {{ .Values.IMAGE }}:{{ .Values.DOCKER_TAG }}
+        imagePullPolicy: Always
+        name: {{ .Values.APP_NAME }}
+        resources: 
+          requests:
+            memory: {{ .Values.REQUESTS.MEMORY }}
+            cpu: {{ .Values.REQUESTS.CPU }}
+          limits:
+            memory: {{ .Values.LIMITS.MEMORY }}
+            cpu: {{ .Values.LIMITS.CPU }}
+        ports:
+          - containerPort: {{ .Values.PORT }}
+        {{- if or (.Values.configmap) (.Values.akvs) }}
+        env:
+          {{- range $key, $value := $.Values.configmap }}
+          - name: {{ $key }}
+            valueFrom:
+              configMapKeyRef:
+                name: {{ $.Values.APP_NAME }}
+                key: {{ $key }}
+          {{- end }}
+          {{- range $key, $value := $.Values.akvs }}
+          - name: {{ $key }}
+            value: {{ $value.objectname }}@azurekeyvault
+          {{- end }}
+        {{- end }}
+        readinessProbe:
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 5
+          httpGet:
+            path: {{ .Values.READINESS_PROBE_ENDPOINT }}
+            port: {{ .Values.PORT }}
+        livenessProbe:
+          initialDelaySeconds: 20
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 5
+          httpGet:
+            path: {{ .Values.LIVENESS_PROBE_ENDPOINT }}
+            port: {{ .Values.PORT }}
+      imagePillSecrets:
+        - name: {{ .Values.IMAGE_PULL_SECRETS }}

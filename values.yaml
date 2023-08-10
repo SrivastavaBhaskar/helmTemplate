@@ -1,0 +1,32 @@
+APP_NAME: app_name
+PORT: 3000
+NAMESPACE: default
+
+HOST: abc.in
+PATH: first_app
+
+IMAGE_PULL_SECRETS: pullsecrets
+
+IMAGE: dockerimage
+DOCKER_TAG: tag
+
+ISTIO_INGRESS_NAMESPACE: istio-system
+ISTIO_INGRESS_GATEWAY_NAME: test-gw
+
+AKV: akv_name
+
+REQUESTS:
+  MEMORY: '.5Gi'
+  CPU: 250m
+
+LIMITS:
+  MEMORY: '1Gi'
+  CPU: 500m
+
+MINREPLICAS: 1
+MAXREPLICAS: 5
+
+akvs:
+  ENVIRONMENT_VARIABLE:
+    objectname: environment-variable-object-name
+    keyname: akvs-secret-key-name

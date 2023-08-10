@@ -1,0 +1,26 @@
+ENVIRONMENT: dev
+
+APP_COMP: dev-default
+CI_NUM: ci_num
+TOP_LEVEL_CI_NUM: top_level_ci_num
+COST_CENTER: 1234
+OWNING_SEGMENT: IN
+SEC_FLAG: true
+PII_FLAG: false
+
+configmap:
+  ENV1: value
+  ENV2: value
+  ENV3: value
+  ENV4: value
+
+serviceEntry:
+  service-entry-name:
+    address:
+      - 192.168.1.1
+    host:
+      - abc.in
+    ports:
+      https:
+        number: 443
+        protocol: HTTPS
